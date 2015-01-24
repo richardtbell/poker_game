@@ -28,6 +28,33 @@ def request_cards_in_river
   @cards_known << input
 end
 
+def return_possible_hands_based_on_community_cards
+  num = (Array (2..10)) + ["j", "q", "k", "a"]
+  all_cards = ["c", "d", "h", "s"].map do |s|
+    num.map {|a| "#{a}#{s}"}
+  end
+  all_cards.flatten!
+  p all_cards
+  community_cards_multiples = Hash.new(0)
+  remaining_cards_multiples = Hash.new(0)
+
+  remaining_cards = @cards_known
+  community_cards = @cards_known[2..-1]
+
+  my_cards.map{|c| c[0]}.sort.each do |c|
+    my_cards_multiples[c] += 1
+  end
+
+
+  community_cards.map{|c| c[0]}.sort.each do |c|
+    community_cards_multiples[c] += 1
+  end
+  p my_cards_multiples
+  p community_cards_multiples
+  p (community_cards_multiples.to_set - my_cards_multiples.to_set)
+end
+
+
 def return_current_hand
   card_order = [1=> "a", 2=> "2", 3=> "3", 4=> "4", 5=> "5", 6=> "6", 7=> "7", 8=> "8", 9=> "9", 10=> "10", 11=> "j", 12=> "q", 13=> "k", 14=> "a"]
   cards_in_play = @cards_known
@@ -36,7 +63,7 @@ def return_current_hand
     multiples[c] += 1
   end
   hands= Hash.new
-  multiples.each do |k,v|
+  multiples.each do |k,v| #select will do this without using each
     hands["FOAK"] = k if v == 4
     hands["TOAK"] = k if v == 3
     if v == 2
@@ -61,11 +88,7 @@ def return_current_hand
       hands.clear
       hands["TP"] = "#{p1}'s and #{p2}'s"
     end
-
   end
-
-  p hands
-
 end
 
 
@@ -90,6 +113,7 @@ request_cards_in_hand
 return_probability
 return_current_hand
 request_cards_in_flop
+return_possible_hands_based_on_community_cards
 return_probability
 return_current_hand
 request_cards_in_turn
@@ -98,5 +122,5 @@ return_current_hand
 request_cards_in_river
 return_probability
 return_current_hand
-
+return_possible_hands_based_on_community_cards
 
