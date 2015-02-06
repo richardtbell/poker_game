@@ -56,7 +56,7 @@ def card_score(card)
 end
 
 def hand_score(hand)
-  %w(RF SF FOAK FH F S TOAK TP P P2 P3).index(hand)
+  %w(RF SF FOAK FH F S TOAK TP P P2 P3 HC).index(hand)
 end
 
 def sort_cards(cards)
@@ -88,22 +88,21 @@ def straight(cards) #take_while or drop_while
   sorted_cards = sort_cards(cards)
   indexed_cards = sorted_cards.map{|c| card_score(c)}
   indexed_cards = indexed_cards.push(13) if cards_contain_ace(cards)
-  difference = []
-  i = 0
-  j = 1
-  while j < indexed_cards.length
-    difference[indexed_cards[i]] = (indexed_cards[j]-indexed_cards[i])
-    i += 1
-    j += 1
-  end
-  if difference.count{|v| v==1} >= 4
-    if indexed_cards.count{|v| v == 12} >= 1  && indexed_cards.count{|v| v == 9} >= 1 && cards_contain_ace(cards)
-      first_card = sorted_cards[0]
-      last_card = sorted_cards[1]
-    else
-      first_card = sorted_cards[4]
-      last_card = sorted_cards[0]
+  cards_in_a_row = []
+  indexed_cards.each_with_index do |v,i|
+    if i > 0
+      cards_in_a_row.push(i-1) if (v - indexed_cards[i-1]) == 1
+      if i == (indexed_cards.length - 1)
+        cards_in_a_row.push(i) if (v - indexed_cards[i-1]) == 1
+      end
     end
+  end
+  cards_in_a_row.map! do |c|
+    sorted_cards[c] || sorted_cards[0]
+  end
+  if cards_in_a_row.length >= 5
+    first_card = cards_in_a_row.last
+    last_card = cards_in_a_row.first
   end
   [first_card, last_card]
 end
@@ -158,7 +157,7 @@ def return_hands(cards)
         hands["SF"] = "#{straight_flush[0]} through #{straight_flush[1]}"
       end
     end
-  elsif straight(cards)
+  elsif !straight(cards).first.nil? && !straight(cards).last.nil?
     straight = straight(cards)
     hands.clear
     hands["S"] = "#{straight[0][0]} through #{straight[1][0]}"
@@ -172,6 +171,8 @@ def return_hands(cards)
     p2 = hands["P2"]
     hands.clear
     hands["TP"] = "#{p1}'s and #{p2}'s"
+  else
+    hands["HC"] = sort_cards(cards)[0]
   end
   return hands
 end
@@ -207,9 +208,57 @@ end
 # request_cards_in_river
 # return_probability
 # return_hands(@cards_known)
-
-@cards_known = ["9d","kd", "ac", "qd", "2c", "jd", "10d"]
+p "high card"
+@cards_known = ["9h","3d", "ac", "7d", "2c", "jd", "5d"]
+p sort_cards(@cards_known)
 p return_hands(@cards_known)
+
+p "pair"
+@cards_known = ["4h","4d", "ac", "7d", "2c", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "two pair"
+@cards_known = ["4h","4d", "ac", "ad", "2c", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "three of a kind"
+@cards_known = ["4h","4d", "4c", "7d", "2c", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "full house"
+@cards_known = ["4h","4d", "4c", "7d", "7c", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "four of a kind"
+@cards_known = ["4h","4d", "4c", "4s", "2c", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "straight"
+@cards_known = ["4h","3d", "ac", "7d", "2c", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "flush"
+@cards_known = ["4h","3h", "ah", "7h", "2c", "jh", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+
+p "straight flush"
+@cards_known = ["4h","5h", "3h", "ah", "2h", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
+p "royal flush"
+@cards_known = ["10h","jh", "qh", "ah", "kh", "jd", "5d"]
+p sort_cards(@cards_known)
+p return_hands(@cards_known)
+
 # p "return_probability"
 # p return_probability
 # p "return_possible_hands_based_on_community_cards"
