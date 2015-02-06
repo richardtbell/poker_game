@@ -51,8 +51,6 @@ def return_possible_hands_based_on_community_cards
   return all_possible_hands.uniq
 end
 
-
-  # card_order = [1=> "a", 2=> "2", 3=> "3", 4=> "4", 5=> "5", 6=> "6", 7=> "7", 8=> "8", 9=> "9", 10=> "10", 11=> "j", 12=> "q", 13=> "k", 14=> "a"]
 def card_score(card)
   %w(a k q j 10 9 8 7 6 5 4 3 2).index(card[0].chr)
 end
@@ -60,15 +58,32 @@ end
 def hand_score(hand)
   %w(RF SF FOAK FH F S TOAK TP P P2 P3).index(hand)
 end
-# @cards_known = ["5s","ad", "ac", "2s", "2c", "3d", "3c"]
-def return_hands(cards_known)
-  cards_in_play = cards_known
+
+def sorted_cards(cards_known)
+  cards_known.sort{ |a,b| card_score(a) <=> card_score(b)}
+end
+
+
+def multiples(cards_known)
   multiples = Hash.new(0)
-  cards_known.map{|c| c[0]}.sort{ |a,b| card_score(a) <=> card_score(b)}.each do |c|
+  sorted_cards(cards_known).map{|c| c[0]}.each do |c|
     multiples[c] += 1
   end
+  multiples
+end
+
+def suits(cards_known)
+  suits = Hash.new(0)
+  cards_known.map{|c| c[1]}.each do |c|
+    suits[c] += 1
+  end
+  suits.sort
+end
+
+def return_hands(cards_known)
+  cards_in_play = cards_known
   hands= Hash.new
-  multiples.each do |k,v| #select will do this without using each
+  multiples(cards_known).each do |k,v| #select will do this without using each
     hands["FOAK"] = k if v == 4
     hands["TOAK"] = k if v == 3
     if v == 2
@@ -82,8 +97,18 @@ def return_hands(cards_known)
       end
     end
   end
+  suits(cards_known).each do |k,v|
+    p k
+    p v
+    hands["F"] = k if v == 5
+  end
+  p hands
   hands = Hash[hands.sort{ |a,b| hand_score(a[0]) <=> hand_score(b[0])}]
-  if hands["TOAK"] && hands["P"]
+  if hands["F"]
+    suit = hands["F"]
+    hands.clear
+    hands["F"] = suit
+  elsif hands["TOAK"] && hands["P"]
     pair = hands["P"]
     toak = hands["TOAK"]
     hands.clear
@@ -129,9 +154,10 @@ end
 # return_probability
 # return_hands(@cards_known)
 
-@cards_known = ["2d","ad", "ac", "2s", "2c", "3d", "3c"]
+@cards_known = ["2d","ad", "ac", "9d", "2c", "3d", "5d"]
 p "return_hands"
 p return_hands(@cards_known)
+p suits(@cards_known)
 # p "return_probability"
 # p return_probability
 # p "return_possible_hands_based_on_community_cards"
