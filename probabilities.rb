@@ -52,7 +52,7 @@ def return_possible_hands_based_on_community_cards
 end
 
 def card_score(card)
-  %w(a k q j 10 9 8 7 6 5 4 3 2).index(card[0].chr)
+  %w(a k q j 10 9 8 7 6 5 4 3 2).index(card[0...-1])
 end
 
 def hand_score(hand)
@@ -66,7 +66,7 @@ end
 
 def multiples(cards)
   multiples = Hash.new(0)
-  sort_cards(cards).map{|c| c[0]}.each do |c|
+  sort_cards(cards).map{|c| c[0...-1]}.each do |c|
     multiples[c] += 1
   end
   multiples
@@ -74,7 +74,7 @@ end
 
 def suits(cards)
   suits = Hash.new(0)
-  cards.map{|c| c[1]}.each do |c|
+  cards.map{|c| c[-1]}.each do |c|
     suits[c] += 1
   end
   suits.sort
@@ -109,8 +109,17 @@ def straight(cards) #take_while or drop_while
 end
 
 def straight_flush(cards, suit)
-  flush_cards = cards.select{|c| c if c[1] == suit }
+  flush_cards = cards.select{|c| c if c[-1] == suit }
   straight(flush_cards)
+end
+
+def royal_flush(cards, suit)
+  flush_cards = cards.select{|c| c if c[-1] == suit }
+  straight_flush_cards = straight(flush_cards)
+  if straight_flush_cards[0][0...-1] == "10" && straight(flush_cards)[1][0...-1] == "a"
+    royal_flush_cards = straight_flush_cards
+  end
+  royal_flush_cards
 end
 
 def return_hands(cards)
@@ -141,8 +150,13 @@ def return_hands(cards)
     hands["F"] = suit
     straight_flush = straight_flush(cards, suit)
     if !straight_flush.first.nil? && !straight_flush.last.nil?
+      royal_flush = royal_flush(cards,suit)
       hands.clear
-      hands["SF"] = "#{straight_flush[0]} through #{straight_flush[1]}"
+      if royal_flush && !royal_flush.first.nil? && !royal_flush.last.nil?
+        hands["RF"] = "#{straight_flush[0]} through #{straight_flush[1]}"
+      else
+        hands["SF"] = "#{straight_flush[0]} through #{straight_flush[1]}"
+      end
     end
   elsif straight(cards)
     straight = straight(cards)
@@ -194,7 +208,7 @@ end
 # return_probability
 # return_hands(@cards_known)
 
-@cards_known = ["2c","3d", "ac", "4d", "2c", "6d", "5d"]
+@cards_known = ["9d","kd", "ac", "qd", "2c", "jd", "10d"]
 p return_hands(@cards_known)
 # p "return_probability"
 # p return_probability
