@@ -133,6 +133,7 @@ def return_hands(cards)
   suits(cards).each do |k,v|
     hands["F"] = k if v == 5
   end
+
   hands = Hash[hands.sort{ |a,b| hand_score(a[0]) <=> hand_score(b[0])}]
   if hands["F"]
     suit = hands["F"]
@@ -143,6 +144,10 @@ def return_hands(cards)
       hands.clear
       hands["SF"] = "#{straight_flush[0]} through #{straight_flush[1]}"
     end
+  elsif straight(cards)
+    straight = straight(cards)
+    hands.clear
+    hands["S"] = "#{straight[0][0]} through #{straight[1][0]}"
   elsif hands["TOAK"] && hands["P"]
     pair = hands["P"]
     toak = hands["TOAK"]
@@ -189,7 +194,7 @@ end
 # return_probability
 # return_hands(@cards_known)
 
-@cards_known = ["2d","3d", "ac", "4d", "2c", "6d", "5d"]
+@cards_known = ["2c","3d", "ac", "4d", "2c", "6d", "5d"]
 p return_hands(@cards_known)
 # p "return_probability"
 # p return_probability
