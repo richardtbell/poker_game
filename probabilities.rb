@@ -1,3 +1,6 @@
+# Next step is to get it to return only the 5 best hands that are possible from the community
+# Then find the hands that will beat your hand
+
 @cards_known = []
 def request_cards_in_hand
   input = ""
@@ -212,52 +215,54 @@ p "high card"
 @cards_known = ["9h","3d", "ac", "7d", "2c", "jd", "5d"]
 p sort_cards(@cards_known)
 p return_hands(@cards_known)
-
-p "pair"
-@cards_known = ["4h","4d", "ac", "7d", "2c", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
-
-p "two pair"
-@cards_known = ["4h","4d", "ac", "ad", "2c", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
-
-p "three of a kind"
-@cards_known = ["4h","4d", "4c", "7d", "2c", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
-
-p "full house"
-@cards_known = ["4h","4d", "4c", "7d", "7c", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
-
-p "four of a kind"
-@cards_known = ["4h","4d", "4c", "4s", "2c", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
-
-p "straight"
-@cards_known = ["4h","3d", "ac", "7d", "2c", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
-
-p "flush"
-@cards_known = ["4h","3h", "ah", "7h", "2c", "jh", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
+p return_possible_hands_based_on_community_cards
 
 
-p "straight flush"
-@cards_known = ["4h","5h", "3h", "ah", "2h", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
+# p "pair"
+# @cards_known = ["4h","4d", "ac", "7d", "2c", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
 
-p "royal flush"
-@cards_known = ["10h","jh", "qh", "ah", "kh", "jd", "5d"]
-p sort_cards(@cards_known)
-p return_hands(@cards_known)
+# p "two pair"
+# @cards_known = ["4h","4d", "ac", "ad", "2c", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+# p "three of a kind"
+# @cards_known = ["4h","4d", "4c", "7d", "2c", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+# p "full house"
+# @cards_known = ["4h","4d", "4c", "7d", "7c", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+# p "four of a kind"
+# @cards_known = ["4h","4d", "4c", "4s", "2c", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+# p "straight"
+# @cards_known = ["4h","3d", "ac", "7d", "2c", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+# p "flush"
+# @cards_known = ["4h","3h", "ah", "7h", "2c", "jh", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+
+# p "straight flush"
+# @cards_known = ["4h","5h", "3h", "ah", "2h", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
+
+# p "royal flush"
+# @cards_known = ["10h","jh", "qh", "ah", "kh", "jd", "5d"]
+# p sort_cards(@cards_known)
+# p return_hands(@cards_known)
 
 # p "return_probability"
 # p return_probability
