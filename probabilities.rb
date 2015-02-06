@@ -59,31 +59,64 @@ def hand_score(hand)
   %w(RF SF FOAK FH F S TOAK TP P P2 P3).index(hand)
 end
 
-def sorted_cards(cards_known)
-  cards_known.sort{ |a,b| card_score(a) <=> card_score(b)}
+def sort_cards(cards)
+  cards.sort{ |a,b| card_score(a) <=> card_score(b)}
 end
 
 
-def multiples(cards_known)
+def multiples(cards)
   multiples = Hash.new(0)
-  sorted_cards(cards_known).map{|c| c[0]}.each do |c|
+  sort_cards(cards).map{|c| c[0]}.each do |c|
     multiples[c] += 1
   end
   multiples
 end
 
-def suits(cards_known)
+def suits(cards)
   suits = Hash.new(0)
-  cards_known.map{|c| c[1]}.each do |c|
+  cards.map{|c| c[1]}.each do |c|
     suits[c] += 1
   end
   suits.sort
 end
 
-def return_hands(cards_known)
-  cards_in_play = cards_known
+def cards_contain_ace(cards)
+  !cards.select{|c| c[0]=="a"}.empty?
+end
+
+def straight(cards) #take_while or drop_while
+  sorted_cards = sort_cards(cards)
+  indexed_cards = sorted_cards.map{|c| card_score(c)}
+  indexed_cards = indexed_cards.push(13) if cards_contain_ace(cards)
+  difference = []
+  i = 0
+  j = 1
+  while j < indexed_cards.length
+    difference[indexed_cards[i]] = (indexed_cards[j]-indexed_cards[i])
+    i += 1
+    j += 1
+  end
+  if difference.count{|v| v==1} >= 4
+    if indexed_cards.count{|v| v == 12} >= 1  && indexed_cards.count{|v| v == 9} >= 1 && cards_contain_ace(cards)
+      first_card = sorted_cards[0]
+      last_card = sorted_cards[1]
+    else
+      first_card = sorted_cards[4]
+      last_card = sorted_cards[0]
+    end
+  end
+  [first_card, last_card]
+end
+
+def straight_flush(cards, suit)
+  flush_cards = cards.select{|c| c if c[1] == suit }
+  straight(flush_cards)
+end
+
+def return_hands(cards)
+  cards_in_play = cards
   hands= Hash.new
-  multiples(cards_known).each do |k,v| #select will do this without using each
+  multiples(cards).each do |k,v| #select will do this without using each
     hands["FOAK"] = k if v == 4
     hands["TOAK"] = k if v == 3
     if v == 2
@@ -97,17 +130,19 @@ def return_hands(cards_known)
       end
     end
   end
-  suits(cards_known).each do |k,v|
-    p k
-    p v
+  suits(cards).each do |k,v|
     hands["F"] = k if v == 5
   end
-  p hands
   hands = Hash[hands.sort{ |a,b| hand_score(a[0]) <=> hand_score(b[0])}]
   if hands["F"]
     suit = hands["F"]
     hands.clear
     hands["F"] = suit
+    straight_flush = straight_flush(cards, suit)
+    if !straight_flush.first.nil? && !straight_flush.last.nil?
+      hands.clear
+      hands["SF"] = "#{straight_flush[0]} through #{straight_flush[1]}"
+    end
   elsif hands["TOAK"] && hands["P"]
     pair = hands["P"]
     toak = hands["TOAK"]
@@ -154,10 +189,8 @@ end
 # return_probability
 # return_hands(@cards_known)
 
-@cards_known = ["2d","ad", "ac", "9d", "2c", "3d", "5d"]
-p "return_hands"
+@cards_known = ["2d","3d", "ac", "4d", "2c", "6d", "5d"]
 p return_hands(@cards_known)
-p suits(@cards_known)
 # p "return_probability"
 # p return_probability
 # p "return_possible_hands_based_on_community_cards"
