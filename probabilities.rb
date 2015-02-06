@@ -53,10 +53,18 @@ end
 
 
   # card_order = [1=> "a", 2=> "2", 3=> "3", 4=> "4", 5=> "5", 6=> "6", 7=> "7", 8=> "8", 9=> "9", 10=> "10", 11=> "j", 12=> "q", 13=> "k", 14=> "a"]
+def card_score(card)
+  %w(a k q j 10 9 8 7 6 5 4 3 2).index(card[0].chr)
+end
+
+def hand_score(hand)
+  %w(RF SF FOAK FH F S TOAK TP P P2 P3).index(hand)
+end
+# @cards_known = ["5s","ad", "ac", "2s", "2c", "3d", "3c"]
 def return_hands(cards_known)
   cards_in_play = cards_known
   multiples = Hash.new(0)
-  cards_known.map{|c| c[0]}.sort.each do |c|
+  cards_known.map{|c| c[0]}.sort{ |a,b| card_score(a) <=> card_score(b)}.each do |c|
     multiples[c] += 1
   end
   hands= Hash.new
@@ -73,18 +81,18 @@ def return_hands(cards_known)
         hands["P"] = k
       end
     end
-    if hands["TOAK"] && hands["P"]
-      pair = hands["P"]
-      toak = hands["TOAK"]
-      hands.clear
-      hands["FH"] = "#{toak}'s over #{pair}'s"
-    end
-    if hands["P2"]
-      p1 = hands["P"]
-      p2 = hands["P2"]
-      hands.clear
-      hands["TP"] = "#{p1}'s and #{p2}'s"
-    end
+  end
+  hands = Hash[hands.sort{ |a,b| hand_score(a[0]) <=> hand_score(b[0])}]
+  if hands["TOAK"] && hands["P"]
+    pair = hands["P"]
+    toak = hands["TOAK"]
+    hands.clear
+    hands["FH"] = "#{toak}'s over #{pair}'s"
+  elsif hands["P2"]
+    p1 = hands["P"]
+    p2 = hands["P2"]
+    hands.clear
+    hands["TP"] = "#{p1}'s and #{p2}'s"
   end
   return hands
 end
@@ -107,18 +115,25 @@ def return_probability
   number_of_highest_flush_suit = suits_played.max[1]
   prob_of_flush = cards_left_of_each_suit.merge(cards_left_of_each_suit){|k,v,w| v/total_cards_unknown * (v-1)/(total_cards_unknown-1) *(v-2)/(total_cards_unknown-2)}
 end
-request_cards_in_hand
-return_probability
-return_hands(@cards_known)
-request_cards_in_flop
-p return_possible_hands_based_on_community_cards
-return_probability
-return_hands(@cards_known)
-request_cards_in_turn
-return_probability
-return_hands(@cards_known)
-request_cards_in_river
-return_probability
-return_hands(@cards_known)
-return_possible_hands_based_on_community_cards
+# request_cards_in_hand
+# return_probability
+# return_hands(@cards_known)
+# request_cards_in_flop
+# return_possible_hands_based_on_community_cards
+# return_probability
+# return_hands(@cards_known)
+# request_cards_in_turn
+# return_probability
+# return_hands(@cards_known)
+# request_cards_in_river
+# return_probability
+# return_hands(@cards_known)
+
+@cards_known = ["2d","ad", "ac", "2s", "2c", "3d", "3c"]
+p "return_hands"
+p return_hands(@cards_known)
+# p "return_probability"
+# p return_probability
+# p "return_possible_hands_based_on_community_cards"
+# p return_possible_hands_based_on_community_cards
 
