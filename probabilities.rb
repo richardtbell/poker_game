@@ -1,6 +1,8 @@
 # Next step is to get it to return only the 5 best hands that are possible from the community
 # Then find the hands that will beat your hand
 # Set up test suite
+# Change hashes so they have consistent keys
+
 class Probabilities
 
   @cards_known = []
@@ -36,25 +38,53 @@ class Probabilities
 
   def all_cards
     num = (Array (2..10)) + ["j", "q", "k", "a"]
-    all_cards = ["c", "d", "h", "s"].map do |s|
-      num.map {|a| "#{a}#{s}"}
+    all_cards = ["c", "d", "h", "s"].map do |suit|
+      num.map {|number| "#{number}#{suit}"}
     end
     all_cards.flatten!
   end
 
-  def return_possible_hands_based_on_community_cards
-    remaining_cards = all_cards - @cards_known
-    community_cards = @cards_known[2..-1]
+  def deck_cards_remaining_after(cards)
+    remaining_cards = all_cards - cards
+  end
 
+  def possible_pockets(remaining_cards)
     possible_pockets = remaining_cards.map do |a|
       remaining_cards.map {|b| [a,b] unless a == b}
     end
     possible_pockets.flatten!(1).compact!
+  end
+
+  def all_possible_hands(remaining_cards, community_cards)
     all_possible_hands = []
-    possible_pockets.each do |a|
-      all_possible_hands.push(return_hands(a + community_cards))
+    #########################################
+    p possible_pockets(remaining_cards)[8...9]
+    possible_pockets(remaining_cards)[8...9].each do |a|
+      all_possible_hands.push(return_best_hand(a + community_cards))
     end
-    return all_possible_hands.uniq
+    #########################################
+    p all_possible_hands.uniq
+    return all_possible_hands
+  end
+
+  def return_possible_hands_based_on_community_cards(cards)
+    remaining_cards = deck_cards_remaining_after(cards)
+    community_cards = cards[2..-1]
+    community_hand = return_best_hand(community_cards)
+    all_possible_hands = all_possible_hands(remaining_cards, community_cards)
+    unique_hands = all_possible_hands.uniq
+    ranked_hands = rank_all_possible_hands(unique_hands)
+    community_hand_index = ranked_hands.index(community_hand)
+    ranked_hands = ranked_hands.slice!(community_hand_index)
+    return ranked_hands
+  end
+
+  def rank_all_possible_hands(hands)
+    newhands = hands.sort_by { |a| hand_score(a.keys.first) }
+  end
+
+  def rank_hands(hands)
+    Hash[hands.sort_by{ |a| hand_score(a[0]) }]
   end
 
   def card_score(card)
@@ -103,6 +133,11 @@ class Probabilities
   end
 
   def straight(cards) #take_while or drop_while
+    #########################################
+    # Fix case when there is a straight and a pair
+    p "straight"
+    p cards
+    #########################################
     sorted_cards = sort_cards(cards)
     indexed_cards = sorted_cards.map{|c| card_score(c)}
     indexed_cards = indexed_cards.push(13) if cards_contain_ace(cards)
@@ -121,6 +156,7 @@ class Probabilities
         sorted_cards[c] || sorted_cards[0]
       end
     end
+    p straight
     return straight
   end
 
@@ -138,7 +174,11 @@ class Probabilities
     royal_flush_cards
   end
 
-  def return_hands(cards)
+
+
+  def return_best_hand(cards)
+    #########################################
+    p cards
     cards_in_play = cards
     hands= Hash.new
     multiples(cards).each do |k,v| #select will do this without using each
@@ -159,7 +199,11 @@ class Probabilities
       hands["F"] = k if v == 5
     end
 
-    hands = Hash[hands.sort{ |a,b| hand_score(a[0]) <=> hand_score(b[0])}]
+   ############################################################################
+   # Need to find straight before the hand is ranked
+    hands = rank_hands(hands)
+   ############################################################################
+
     if hands["F"]
       suit = hands["F"]
       hands.clear
@@ -191,6 +235,7 @@ class Probabilities
     else
       hands["HC"] = sort_cards(cards)[0]
     end
+    hands = Hash[*hands.first]
     return hands
   end
 
