@@ -5,47 +5,48 @@
 
 class Probabilities
 
-  @cards_known = []
-
-  def request_cards_in_hand
-    input = ""
-    2.times do
-      print "Your cards: "
-      input = gets.chomp
-      @cards_known << input
-    end
-  end
-
-  def request_cards_in_flop
-    3.times do
-      print "The Flop cards: "
-      input = gets.chomp
-      @cards_known << input
-    end
-  end
-
-  def request_cards_in_turn
-    print "The Turn cards: "
-    input = gets.chomp
-    @cards_known << input
-  end
-
-  def request_cards_in_river
-    print "The River cards: "
-    input = gets.chomp
-    @cards_known << input
-  end
+  # @cards_known = []
+#to test
+  # def request_cards_in_hand
+  #   input = ""
+  #   2.times do
+  #     print "Your cards: "
+  #     input = gets.chomp
+  #     @cards_known << input
+  #   end
+  # end
+#to test
+  # def request_cards_in_flop
+  #   3.times do
+  #     print "The Flop cards: "
+  #     input = gets.chomp
+  #     @cards_known << input
+  #   end
+  # end
+#to test
+  # def request_cards_in_turn
+  #   print "The Turn cards: "
+  #   input = gets.chomp
+  #   @cards_known << input
+  # end
+#to test
+  # def request_cards_in_river
+  #   print "The River cards: "
+  #   input = gets.chomp
+  #   @cards_known << input
+  # end
 
   def all_cards
-    num = (Array (2..10)) + ["j", "q", "k", "a"]
-    all_cards = ["c", "d", "h", "s"].map do |suit|
-      num.map {|number| "#{number}#{suit}"}
+    num = (Array (2..10)) + [:jack, :queen, :king, :ace]
+
+    all_cards = [:clubs, :diamonds, :hearts, :spades].map do |suit|
+      num.map {|number| {number: number, suit: suit}}
     end
     all_cards.flatten!
   end
 
   def deck_cards_remaining_after(cards)
-    remaining_cards = all_cards - cards
+    remaining_cards = all_cards.reject{|card| cards.include?(card) }
   end
 
   def possible_pockets(remaining_cards)
@@ -53,8 +54,9 @@ class Probabilities
       remaining_cards.map {|b| [a,b] unless a == b}
     end
     possible_pockets.flatten!(1).compact!
+    possible_pockets.map{|pair| pair.sort_by{|card| card[:number]}}.uniq!
   end
-
+#to test
   def all_possible_hands(remaining_cards, community_cards)
     all_possible_hands = []
     #########################################
@@ -66,7 +68,7 @@ class Probabilities
     p all_possible_hands.uniq
     return all_possible_hands
   end
-
+#to test
   def return_possible_hands_based_on_community_cards(cards)
     remaining_cards = deck_cards_remaining_after(cards)
     community_cards = cards[2..-1]
@@ -75,51 +77,100 @@ class Probabilities
     unique_hands = all_possible_hands.uniq
     ranked_hands = rank_all_possible_hands(unique_hands)
     community_hand_index = ranked_hands.index(community_hand)
-    ranked_hands = ranked_hands.slice!(community_hand_index)
+    ranked_hands = ranked_hands.slice!(community_hand_index) if community_hand_index
     return ranked_hands
   end
-
+#to test
   def rank_all_possible_hands(hands)
     newhands = hands.sort_by { |a| hand_score(a.keys.first) }
   end
-
+#to test
   def rank_hands(hands)
     Hash[hands.sort_by{ |a| hand_score(a[0]) }]
   end
-
-  def card_score(card)
-    %w(a k q j 10 9 8 7 6 5 4 3 2).index(card[0...-1])
+#to test
+  def hand_score(hand)
+    %w(RF SF FOAK FH F S TOAK TP P HC).index(hand)
   end
 
-  def hand_score(hand)
-    %w(RF SF FOAK FH F S TOAK TP P P2 P3 HC).index(hand)
+  def add_card_score(card)
+    array = [:ace, :king, :queen, :jack, 10, 9, 8, 7, 6, 5, 4, 3, 2]
+    score = array.index(card[:number])
+    card[:score] = score
+    card
   end
 
   def sort_cards(cards)
-    cards.sort{ |a,b| card_score(a) <=> card_score(b)}
+    cards.map do |card|
+      if !card[:score]
+        add_card_score(card)
+      end
+    end
+    sorted_cards = cards.sort_by{|card| card[:score]}
   end
-
 
   def multiples(cards)
     multiples = Hash.new(0)
-    sort_cards(cards).map{|c| c[0...-1]}.each do |c|
+    sort_cards(cards).map{|card| card[:number]}.each do |c|
       multiples[c] += 1
     end
     multiples
   end
 
+  def pairs(cards)
+    pairs = multiples(cards).select do |key,value|
+      value == 2
+    end
+    detailed_pairs = []
+    pairs.each do |k, v|
+      pair_cards = cards.select{|card| card[:number] == k}.compact
+      pair_score = pair_cards.first[:score]
+      hash = {pair: k, hand_score: 8, card_score: pair_score, cards: pair_cards}
+      detailed_pairs.push(hash)
+    end
+    detailed_pairs.sort_by!{|pair| pair[:card_score]}[0..1]
+  end
+
+  def three_of_a_kind(cards)
+    toaks = multiples(cards).select do |key,value|
+      value == 3
+    end
+    detailed_toaks = []
+    toaks.each do |k, v|
+      toak_cards = cards.select{|card| card[:number] == k}.compact
+      toak_score = toak_cards.first[:score]
+      hash = {three_of_a_kind: k, hand_score: 6, card_score: toak_score, cards: toak_cards}
+      detailed_toaks.push(hash)
+    end
+    detailed_toaks.sort_by!{|toak| toak[:card_score]}[0]
+  end
+
+  def four_of_a_kind(cards)
+    foaks = multiples(cards).select do |key,value|
+      value == 4
+    end
+    detailed_foaks = []
+    foaks.each do |k, v|
+      foak_cards = cards.select{|card| card[:number] == k}.compact
+      foak_score = foak_cards.first[:score]
+      hash = {four_of_a_kind: k, hand_score: 2, card_score: foak_score, cards: foak_cards}
+      detailed_foaks.push(hash)
+    end
+    detailed_foaks.sort_by!{|foak| foak[:card_score]}[0]
+  end
+
   def suits(cards)
     suits = Hash.new(0)
-    cards.map{|c| c[-1]}.each do |c|
+    cards.map{|card| card[:suit]}.each do |c|
       suits[c] += 1
     end
-    suits.sort
+    suits
   end
 
   def cards_contain_ace(cards)
-    !cards.select{|c| c[0]=="a"}.empty?
+    !cards.select{|c| c[:number]== :ace}.empty?
   end
-
+#to test
   def array_increments?(array)
     sorted = array.sort
     lastNum = sorted[0]
@@ -131,7 +182,7 @@ class Probabilities
     end
     true
   end
-
+#to test
   def straight(cards) #take_while or drop_while
     #########################################
     # Fix case when there is a straight and a pair
@@ -139,8 +190,11 @@ class Probabilities
     p cards
     #########################################
     sorted_cards = sort_cards(cards)
+    p "sorted_cards", sorted_cards
     indexed_cards = sorted_cards.map{|c| card_score(c)}
-    indexed_cards = indexed_cards.push(13) if cards_contain_ace(cards)
+    p "indexed_cards", indexed_cards
+    p "indexed_cards.uniq", indexed_cards.uniq
+    indexed_cards = indexed_cards.uniq.push(13) if cards_contain_ace(cards)
     n = 0
     straight = false
     while n <= indexed_cards.length - 5
@@ -159,12 +213,12 @@ class Probabilities
     p straight
     return straight
   end
-
+#to test
   def straight_flush(cards, suit)
     flush_cards = cards.select{|c| c if c[-1] == suit }
     straight(flush_cards)
   end
-
+#to test
   def royal_flush(cards, suit)
     flush_cards = cards.select{|c| c if c[-1] == suit }
     straight_flush_cards = straight(flush_cards)
@@ -175,7 +229,7 @@ class Probabilities
   end
 
 
-
+#to test
   def return_best_hand(cards)
     #########################################
     p cards
@@ -239,7 +293,7 @@ class Probabilities
     return hands
   end
 
-
+#to test
   def return_probability
     total_cards_known = @cards_known.count
     total_cards_unknown = 52.0 - total_cards_known
@@ -257,4 +311,5 @@ class Probabilities
     number_of_highest_flush_suit = suits_played.max[1]
     prob_of_flush = cards_left_of_each_suit.merge(cards_left_of_each_suit){|k,v,w| v/total_cards_unknown * (v-1)/(total_cards_unknown-1) *(v-2)/(total_cards_unknown-2)}
   end
+
 end
