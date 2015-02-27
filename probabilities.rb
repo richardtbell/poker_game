@@ -1,7 +1,7 @@
 # Next step is to get it to return only the 5 best hands that are possible from the community
 # Then find the hands that will beat your hand
 # Set up test suite
-# Change hashes so they have consistent keys
+# Change hashes so they have consistent keys - finish this - got up to straight
 
 class Probabilities
 
@@ -183,35 +183,58 @@ class Probabilities
     true
   end
 #to test
-  def straight(cards) #take_while or drop_while
-    #########################################
-    # Fix case when there is a straight and a pair
-    p "straight"
-    p cards
-    #########################################
-    sorted_cards = sort_cards(cards)
-    p "sorted_cards", sorted_cards
-    indexed_cards = sorted_cards.map{|c| card_score(c)}
-    p "indexed_cards", indexed_cards
-    p "indexed_cards.uniq", indexed_cards.uniq
-    indexed_cards = indexed_cards.uniq.push(13) if cards_contain_ace(cards)
+
+  def straight_within_sorted_cards(sorted_cards)
+    array_of_scores = sorted_cards.map{ |c| c[:score]}
+    straight_card_scores = false
     n = 0
-    straight = false
-    while n <= indexed_cards.length - 5
-      hand = indexed_cards[n...n+5]
+    while n <= array_of_scores.length - 5
+      hand = array_of_scores[n...n+5]
       if array_increments?(hand)
-        straight = (n...n+5).to_a
+        straight_card_scores = hand
         break
       end
       n += 1
     end
-    if straight
-      straight.map! do |c|
-        sorted_cards[c] || sorted_cards[0]
+    straight_card_scores
+  end
+
+
+  def straight(cards) #take_while or drop_while
+    sorted_cards = sort_cards(cards)
+    straight_card_scores = straight_within_sorted_cards(sorted_cards)
+    if cards_contain_ace(cards) && straight_card_scores == false
+      ace_low_cards = sorted_cards.each do |c|
+        if c[:number] == :ace
+          c[:score] = 13
+        else
+          c
+        end
       end
+      sorted_cards = sort_cards(ace_low_cards)
+      straight_card_scores = straight_within_sorted_cards(sorted_cards)
     end
-    p straight
-    return straight
+    detailed_straight = straight_card_scores
+    if straight_card_scores
+      straight_cards = straight_card_scores.map do |cs|
+        sorted_cards.select{ |c| c[:score] == cs}
+      end
+      straight_cards.flatten!
+      high_card = straight_cards.first
+      detailed_straight = Hash.new
+      detailed_straight[:straight] = high_card[:number]
+      detailed_straight[:hand_score] = 5
+      detailed_straight[:card_score] = high_card[:score]
+      detailed_straight[:cards] = straight_cards
+    end
+
+    # if straight
+    #   straight.map! do |c|
+    #     sorted_cards[c] || sorted_cards[0]
+    #   end
+    # end
+    # p straight
+    return detailed_straight
   end
 #to test
   def straight_flush(cards, suit)

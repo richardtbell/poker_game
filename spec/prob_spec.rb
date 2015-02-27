@@ -178,7 +178,64 @@ RSpec.describe Probabilities do
     end
   end
 
+  describe "#straight" do
+    it "should return false when not a straight" do
+      cards = [
+        {number: 6, suit: :diamonds},
+        {number: 10, suit: :diamonds},
+        {number: 5, suit: :clubs},
+        {number: 7, suit: :spades},
+        {number: 8, suit: :hearts}
+      ]
+      straight = @probabilities.straight(cards)
+      expect(straight).to be_falsy
+    end
 
+
+    it "should return a straight" do
+      cards = [
+        {number: 6, suit: :diamonds},
+        {number: 9, suit: :diamonds},
+        {number: 5, suit: :clubs},
+        {number: 7, suit: :spades},
+        {number: 8, suit: :hearts}
+      ]
+      straight = @probabilities.straight(cards)
+      expect(straight[:straight]).to eq (9)
+    end
+
+    it "should return an ace low straight" do
+      cards = [
+        {number: :ace, suit: :diamonds},
+        {number: 3, suit: :diamonds},
+        {number: 5, suit: :clubs},
+        {number: 2, suit: :spades},
+        {number: 4, suit: :hearts}
+      ]
+      straight = @probabilities.straight(cards)
+      expect(straight[:straight]).to eq (5)
+      expect(straight[:cards]).to include({number: :ace, suit: :diamonds, score: 13})
+      # expect(straight[:cards]).to include({number: 2, suit: :spades, score: 12})
+    end
+
+    it "should return an ace high straight" do
+      cards = [
+        {number: :ace, suit: :diamonds},
+        {number: 10, suit: :diamonds},
+        {number: :queen, suit: :clubs},
+        {number: :jack, suit: :spades},
+        {number: :king, suit: :hearts}
+      ]
+      straight = @probabilities.straight(cards)
+      expect(straight[:straight]).to eq (:ace)
+    end
+
+    it "should return the highest straight" do
+    end
+
+    it "should return a straight when there is also a pair" do
+    end
+  end
 
 
 # describe "#return_best_hand" do
