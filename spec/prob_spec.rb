@@ -231,9 +231,32 @@ RSpec.describe Probabilities do
     end
 
     it "should return the highest straight" do
+      cards = [
+        {number: :ace, suit: :diamonds},
+        {number: 10, suit: :diamonds},
+        {number: :queen, suit: :clubs},
+        {number: 9, suit: :clubs},
+        {number: :jack, suit: :spades},
+        {number: :king, suit: :hearts}
+      ]
+      straight = @probabilities.straight(cards)
+      expect(straight[:straight]).to eq (:ace)
+
     end
 
     it "should return a straight when there is also a pair" do
+      cards = [
+        {number: :ace, suit: :diamonds},
+        {number: 10, suit: :diamonds},
+        {number: :queen, suit: :clubs},
+        {number: :jack, suit: :clubs},
+        {number: :jack, suit: :spades},
+        {number: :king, suit: :hearts}
+      ]
+      straight = @probabilities.straight(cards)
+      expect(straight[:straight]).to eq (:ace)
+      p straight[:cards]
+
     end
   end
 

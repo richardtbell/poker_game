@@ -185,7 +185,7 @@ class Probabilities
 #to test
 
   def straight_within_sorted_cards(sorted_cards)
-    array_of_scores = sorted_cards.map{ |c| c[:score]}
+    array_of_scores = sorted_cards.map{ |c| c[:score]}.uniq
     straight_card_scores = false
     n = 0
     while n <= array_of_scores.length - 5
@@ -227,13 +227,6 @@ class Probabilities
       detailed_straight[:card_score] = high_card[:score]
       detailed_straight[:cards] = straight_cards
     end
-
-    # if straight
-    #   straight.map! do |c|
-    #     sorted_cards[c] || sorted_cards[0]
-    #   end
-    # end
-    # p straight
     return detailed_straight
   end
 #to test
